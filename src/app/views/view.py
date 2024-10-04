@@ -1,6 +1,9 @@
 from src.app.views.app import App
 from src.app.views.root import Root
 from src.app.views.dashboard import DashboardView
+from src.app.views.parser import ParserView
+from src.app.views.summarizer import SummarizerView
+from src.app.views.perm_qa_qc import PermQaQcView
 from src.app.widgets import Page, PageType
 from src.app.exceptions import (
     GUIError
@@ -19,9 +22,15 @@ class View:
         app.post_process()
 
         self.dashboard = DashboardView(app.container)
+        self.parser = ParserView(app.container)
+        self.summarizer = SummarizerView(app.container)
+        self.perm_qa_qc = PermQaQcView(app.container)
 
         self.pages: dict[PageType, Page] = {
-            DashboardView: self.dashboard
+            DashboardView: self.dashboard,
+            ParserView: self.parser,
+            SummarizerView: self.summarizer,
+            PermQaQcView: self.perm_qa_qc
         }
 
     def show(self, page: PageType) -> None:

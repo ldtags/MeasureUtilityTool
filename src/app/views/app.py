@@ -5,6 +5,7 @@ import tkinter.font as tkf
 from typing import Literal, Callable
 
 from src import assets
+from src.app.exceptions import GUIError
 
 
 class App(ttk.Frame):
@@ -48,6 +49,10 @@ class App(ttk.Frame):
                             column=1,
                             sticky=tk.NSEW)
 
+    def set_nav(self,
+                nav: Literal['home', 'parser', 'summarizer', 'perm_qa_qc']
+               ) -> None:
+        self.navbar.navbar_list.set_active(nav)
 
     def post_process(self) -> None:
         self.navbar.post_process()
@@ -116,6 +121,25 @@ class NavBarList(ttk.Frame):
     def clear_activity(self) -> None:
         for item in self._items:
             item._set_state('normal')
+
+    def set_active(self,
+                   nav: Literal['home', 'parser', 'summarizer', 'perm_qa_qc']
+                  ) -> None:
+        nav_widget: NavBarListItem | None = None
+        match nav:
+            case 'home':
+                nav_widget = self.dashboard_item
+            case 'parser':
+                nav_widget = self.parser_item
+            case 'summarizer':
+                nav_widget = self.summarizer_item
+            case 'perm_qa_qc':
+                nav_widget = self.perm_qa_qc_item
+            case other:
+                raise GUIError(f'Unknown navigation option: {other}')
+
+        self.clear_activity()
+        nav_widget._set_state('active')
 
     def post_process(self) -> None:
         self.update()
@@ -246,6 +270,9 @@ class NavBarListItem(ttk.Frame):
                              height=img_height + 2,
                              width=self._icon_img.width() + 2,
                              y=height / 2 - img_height / 2 - 1)
+
+    def set_event(self, event: Callable[[tk.Event | None], None]) -> None:
+        self._event = event
 
 
 class Footer(ttk.Frame):

@@ -93,7 +93,7 @@ class DashboardButton(ttk.Frame):
         frame_kwargs: dict[str,] = {}
         btn_kwargs: dict[str,] = {}
 
-        for key, value in kwargs:
+        for key, value in kwargs.items():
             if key in DashboardButton._FRAME_ATTRS:
                 frame_kwargs[key] = value
             else:
