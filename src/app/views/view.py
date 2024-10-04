@@ -1,3 +1,4 @@
+from src.app.views.app import App
 from src.app.views.root import Root
 from src.app.views.dashboard import DashboardView
 from src.app.widgets import Page, PageType
@@ -13,8 +14,11 @@ class View:
     """
 
     def __init__(self):
-        self.root = Root()
-        self.dashboard = DashboardView(self.root.container)
+        self.root = root = Root()
+        self.app = app = App(root.container)
+        app.post_process()
+
+        self.dashboard = DashboardView(app.container)
 
         self.pages: dict[PageType, Page] = {
             DashboardView: self.dashboard

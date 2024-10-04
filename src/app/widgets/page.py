@@ -11,9 +11,12 @@ class Page(ttk.Frame, metaclass=ABCMeta):
             raise Exception('Cannot instantiate an abstract base class')
 
         super().__init__(parent, **kwargs)
-        self.grid(row=0,
-                  column=0,
-                  sticky=tk.NSEW)
+        self.grid(row=0, column=0, sticky=tk.NSEW)
+
+        parent_height = parent.winfo_height()
+        parent_width = parent.winfo_width()
+        self.configure(height=parent_height,
+                       width=parent_width)
 
     @abstractmethod
     def show(self) -> None:

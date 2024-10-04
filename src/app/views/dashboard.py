@@ -1,9 +1,7 @@
-import math
 import tkinter as tk
 import tkinter.ttk as ttk
 import tkinter.font as tkf
-from PIL import Image, ImageTk
-from typing import Literal, Callable
+from typing import Callable
 
 from src import assets
 from src.app.widgets import Page
@@ -11,25 +9,43 @@ from src.app.widgets import Page
 
 class DashboardView(Page):
     def __init__(self, parent: ttk.Frame, **kwargs):
-        super().__init__(parent, **kwargs)
+        super().__init__(parent, style='Dashboard.TFrame', **kwargs)
 
-        self.grid_columnconfigure((0), weight=1)
-        self.grid_columnconfigure((1), weight=7)
-        self.grid_rowconfigure((0), weight=10)
-        self.grid_rowconfigure((1), weight=1)
+        self.grid_rowconfigure((0, 2), weight=1)
+        self.grid_columnconfigure((0, 2, 4, 6), weight=1)
+        self.grid_propagate(False)
 
-        self.navbar = navbar = NavBar(self)
-        navbar.grid(row=0,
-                    rowspan=2,
-                    column=0,
-                    sticky=tk.NSEW)
+        parent_height = parent.winfo_height()
+        parent_width = parent.winfo_width()
+        btn_height = parent_height // 3
+        btn_width = parent_width // 5
 
-        self.footer = footer = Footer(self)
-        footer.grid(row=1,
-                    column=1,
-                    sticky=tk.NSEW)
+        self.parser_btn = DashboardButton(self,
+                                          text='Parse a Measure',
+                                          image='square-document.png',
+                                          height=btn_height,
+                                          width=btn_width)
+        self.parser_btn.grid(row=1,
+                             column=1,
+                             sticky=tk.NSEW)
 
-        self.post_process()
+        self.summarizer_btn = DashboardButton(self,
+                                              text='Summarize a Measure',
+                                              image='pdf-black.png',
+                                              height=btn_height,
+                                              width=btn_width)
+        self.summarizer_btn.grid(row=1,
+                                 column=3,
+                                 sticky=tk.NSEW)
+
+        self.perm_qa_qc_btn = DashboardButton(self,
+                                              text='QA/QC Permutations',
+                                              image='square-document.png',
+                                              height=btn_height,
+                                              width=btn_width)
+        self.perm_qa_qc_btn.grid(row=1,
+                                 column=5,
+                                 sticky=tk.NSEW)
 
     @property
     def key(self) -> str:
@@ -38,212 +54,53 @@ class DashboardView(Page):
     def show(self) -> None:
         self.tkraise()
 
-    def post_process(self) -> None:
-        self.navbar.post_process()
-        self.footer.post_process()
 
+class DashboardButton(ttk.Frame):
+    _FRAME_ATTRS = {'height', 'width'}
 
-class NavBar(ttk.Frame):
-    def __init__(self, parent: DashboardView, **kwargs):
-        super().__init__(parent, style='NavBar.TFrame', **kwargs)
-
-        self.grid_columnconfigure((0), weight=1)
-        self.grid_rowconfigure((0), weight=2)
-        self.grid_rowconfigure((1), weight=6)
-        self.grid_rowconfigure((1), weight=8)
-        self.grid_propagate(False)
-
-        self.navbar_list = NavBarList(self)
-        self.navbar_list.grid(row=1,
-                              column=0,
-                              sticky=tk.NSEW)
-
-    def post_process(self) -> None:
-        self.update()
-        self.navbar_list.post_process()
-
-
-class NavBarList(ttk.Frame):
-    def __init__(self, parent: NavBar, **kwargs):
-        super().__init__(parent, style='List.NavBar.TFrame', **kwargs)
-
-        self._items: list[NavBarListItem] = []
-
-        self.dashboard_item = NavBarListItem(self,
-                                             text='HOME',
-                                             icon='home.png')
-        self.dashboard_item.pack(side=tk.TOP,
-                                 anchor=tk.NW)
-        self._items.append(self.dashboard_item)
-
-        self.parser_item = NavBarListItem(self,
-                                          text='MEASURE PARSER',
-                                          icon='brackets.png')
-        self.parser_item.pack(side=tk.TOP,
-                              anchor=tk.NW)
-        self._items.append(self.parser_item)
-
-        self.dashboard_item._set_state('active')
-
-    def clear_activity(self) -> None:
-        for item in self._items:
-            item._set_state('normal')
-
-    def post_process(self) -> None:
-        self.update()
-        for item in self._items:
-            item.post_process()
-
-
-class NavBarListItem(ttk.Frame):
     def __init__(self,
-                 parent: NavBarList,
+                 parent: DashboardView,
                  text: str,
-                 icon: str,
-                 height: int=40,
-                 width: int | None=None,
-                 cursor: str='hand2',
-                 style: str='Item.List.NavBar.TFrame',
-                 event: Callable[[tk.Event | None], None] | None=None,
+                 image: str,
+                 height: int,
+                 width: int,
+                 style: str='Dashboard.Option.TButton',
+                 command: Callable[[tk.Event | None], None] | None=None,
+                 cursor='hand2',
                  **kwargs):
-        super().__init__(parent, cursor=cursor, style=style, **kwargs)
+        super().__init__(parent, height=height, width=width)
 
-        self.parent = parent
-        self._icon = icon
-        self._height = height
-        self._width = width
-        self._state: Literal['hover', 'active', 'normal'] = 'normal'
-        self._event = event
+        self.pack_propagate(False)
+        label = ttk.Label(self, text=text)
+        text_height = tkf.Font(font=label['font']).metrics('linespace')
+        label.destroy()
+        img_height = height - 50 - text_height
+        img_width = width - 50
+        self._image = assets.get_tkimage(image,
+                                         (img_width, img_height),
+                                         parent=self)
+        self._btn = ttk.Button(self,
+                               text=text,
+                               image=self._image,
+                               style=style,
+                               command=command,
+                               cursor=cursor,
+                               padding=(20, 20),
+                               **kwargs)
+        self._btn.pack(fill=tk.BOTH, expand=True)
 
-        self.accent_frame = ttk.Frame(self, style='Item.List.NavBar.TFrame')
-        self.img_label = ttk.Label(self, style='List.NavBar.TLabel')
-        self.label = ttk.Label(self, text=text, style='List.NavBar.TLabel')
+    def configure(self, **kwargs) -> None:
+        frame_kwargs: dict[str,] = {}
+        btn_kwargs: dict[str,] = {}
 
-        self.bind('<Button-1>', self._on_click)
-        self.bind('<Enter>', self._on_enter)
-        self.bind('<Leave>', self._on_leave)
+        for key, value in kwargs:
+            if key in DashboardButton._FRAME_ATTRS:
+                frame_kwargs[key] = value
+            else:
+                btn_kwargs[key] = value
 
-        for child in self.winfo_children():
-            child.bind('<Button-1>', self._on_click)
+        if frame_kwargs != {}:
+            self.configure(**frame_kwargs)
 
-        self._set_state('normal')
-
-    def _on_click(self, event: tk.Event | None=None) -> None:
-        """Styles the list item to the `active` state and calls the
-        configured event if one exists.
-        """
-
-        if self._state == 'active':
-            return
-
-        self.parent.clear_activity()
-        self._set_state('active')
-        if self._event is not None:
-            try:
-                self._event(event)
-            except TypeError:
-                self._event()
-
-    def _on_enter(self, event: tk.Event | None=None) -> None:
-        """Styles the list item to the `hover` state."""
-
-        if self._state == 'hover' or self._state == 'active':
-            return
-
-        self._set_state('hover')
-
-    def _on_leave(self, event: tk.Event | None=None) -> None:
-        """Styles the list item to the `normal` state."""
-
-        if self._state == 'normal' or self._state == 'active':
-            return
-
-        self._set_state('normal')
-
-    def _set_state(self, state: Literal['hover', 'active', 'normal']) -> None:
-        match state:
-            case 'hover':
-                self.configure(cursor='hand2')
-                self.configure(style='Highlight.Item.List.NavBar.TFrame')
-                self.img_label.configure(style='Highlight.List.NavBar.TLabel')
-                self.label.configure(style='Highlight.List.NavBar.TLabel')
-                self.accent_frame.configure(style='Highlight.Item.List.NavBar.TFrame')
-            case 'active':
-                self.configure(cursor='arrow')
-                self.configure(style='Highlight.Item.List.NavBar.TFrame')
-                self.img_label.configure(style='Highlight.List.NavBar.TLabel')
-                self.label.configure(style='Highlight.List.NavBar.TLabel')
-                self.accent_frame.configure(style='Accent.Item.List.NavBar.TFrame')
-            case 'normal':
-                self.configure(cursor='hand2')
-                self.configure(style='Item.List.NavBar.TFrame')
-                self.img_label.configure(style='List.NavBar.TLabel')
-                self.label.configure(style='List.NavBar.TLabel')
-                self.accent_frame.configure(style='Item.List.NavBar.TFrame')
-            case other:
-                raise RuntimeError(f'Unknown state: {other}')
-
-        self._state = state
-
-    def post_process(self) -> None:
-        parent_width = self.parent.winfo_width()
-        self.configure(width=self._width or parent_width * 1.5,
-                       height=self._height)
-
-        self.update()
-        height = self.winfo_height()
-        width = self.winfo_width()
-        
-        accent_width = width / 40
-        self.accent_frame.place(x=0,
-                                y=0,
-                                height=height,
-                                width=accent_width)
-
-        img_padx = 5
-        label_height = tkf.Font(font=self.label['font']).metrics('linespace')
-        img_height = math.floor(label_height + 1)
-        base_img = Image.open(assets.get_path(self._icon))
-        aspect_ratio = base_img.width / base_img.height
-        img_width = math.floor(img_height * aspect_ratio)
-
-        label_x = accent_width + img_padx * 3 + img_width + 5
-        self.label.place(x=label_x,
-                         y=height / 2 - label_height / 2,
-                         width=width - label_x)
-
-        img = base_img.resize((img_width, img_height),
-                              Image.Resampling.LANCZOS)
-        self._icon_img = ImageTk.PhotoImage(img)
-        self.img_label.configure(image=self._icon_img)
-        self.img_label.place(x=accent_width + img_padx * 2,
-                             height=img_height,
-                             width=img_width + 2,
-                             y=height / 2 - img_height / 2 - 1)
-
-
-class Footer(ttk.Frame):
-    def __init__(self, parent: DashboardView, **kwargs):
-        super().__init__(parent, style='Footer.TFrame', **kwargs)
-
-        self.grid_rowconfigure((0), weight=1)
-        self.grid_columnconfigure((0), weight=12)
-        self.grid_columnconfigure((1), weight=1)
-        self.grid_propagate(False)
-
-        self.img_label = tk.Label(self, bg='#6b6b6b', borderwidth=0)
-        self.img_label.grid(row=0,
-                            column=1,
-                            sticky=tk.NSEW)
-
-    def post_process(self) -> None:
-        self.update()
-        frame_height = self.winfo_height()
-        img_height = math.floor(frame_height * 0.5)
-        base_img = Image.open(assets.get_path('etrm-logo-gray.png'))
-        aspect_ratio = base_img.width / base_img.height
-        img_width = math.floor(img_height * aspect_ratio)
-        img = base_img.resize((img_width, img_height),
-                              Image.Resampling.LANCZOS)
-        self.etrm_img = ImageTk.PhotoImage(img)
-        self.img_label.configure(image=self.etrm_img)
+        if btn_kwargs != {}:
+            self._btn.configure(**btn_kwargs)
