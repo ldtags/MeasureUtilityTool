@@ -4,7 +4,7 @@ import tkinter.font as tkf
 from typing import Callable
 
 from src import assets
-from src.app.widgets import Page
+from src.app.widgets import Page, Button
 
 
 class DashboardView(Page):
@@ -79,14 +79,16 @@ class DashboardButton(ttk.Frame):
         self._image = assets.get_tkimage(image,
                                          (img_width, img_height),
                                          parent=self)
-        self._btn = ttk.Button(self,
-                               text=text,
-                               image=self._image,
-                               style=style,
-                               command=command,
-                               cursor=cursor,
-                               padding=(20, 20),
-                               **kwargs)
+        self._btn = Button(self,
+                           text=text,
+                           image=self._image,
+                           command=command,
+                           cursor=cursor,
+                           style=style,
+                           compound_padding=20,
+                           border_radius=5,
+                           ipadx=20,
+                           ipady=15)
         self._btn.pack(fill=tk.BOTH, expand=True)
 
     def configure(self, **kwargs) -> None:
