@@ -8,6 +8,9 @@ from typing import Callable, Literal, TypeVar
 _T = TypeVar('_T')
 
 
+_STATE = Literal['active', 'normal', 'disabled', 'hovered']
+
+
 class Button(tk.Canvas):
     _text_cf_items = {'text_color', 'font'}
     _canv_cf_items = {'cursor'}
@@ -25,6 +28,8 @@ class Button(tk.Canvas):
                  hover_text_color: str | None=None,
                  active_background: str | None=None,
                  active_text_color: str | None=None,
+                 disabled_background: str | None=None,
+                 disabled_text_color: str | None=None,
                  border_color: str | None=None,
                  border_radius: int=0,
                  image: PhotoImage | None=None,
@@ -35,7 +40,8 @@ class Button(tk.Canvas):
                  compound: Literal['top', 'bottom', 'left', 'right', 'center']=tk.TOP,
                  compound_padding: int=0,
                  justify: Literal['left', 'right', 'center']=tk.CENTER,
-                 align: Literal['top', 'bottom', 'center']=tk.CENTER):
+                 align: Literal['top', 'bottom', 'center']=tk.CENTER,
+                 state: _STATE='normal'):
         super().__init__(parent,
                          borderwidth=0,
                          relief=tk.FLAT,
@@ -51,11 +57,13 @@ class Button(tk.Canvas):
         self._image = image
         self._bg = background or self._get_style('background', 'light grey')
         self._fg = text_color or self._get_style('foreground', 'black')
-        self._border_color = border_color or self._bg
         self._hover_bg = hover_background or self._get_style('highlightbackground', self._bg)
         self._hover_fg = hover_text_color or self._get_style('highlightcolor', self._fg)
         self._active_bg = active_background or self._get_style('activebackground', self._bg)
         self._active_fg = active_text_color or self._get_style('activeforeground', self._fg)
+        self._disabled_bg = disabled_background or self._get_style('disabledbackground', self._bg)
+        self._disabled_fg = disabled_text_color or self._get_style('disabledforeground', self._fg)
+        self._border_color = border_color or self._bg
         self._cursor = cursor or self._get_style('cursor', 'hand2')
         self._compound = compound
         self._compound_padding = compound_padding
@@ -63,8 +71,7 @@ class Button(tk.Canvas):
         self._ipady = ipady
         self._justify = justify
         self._align = align
-        self._state: Literal['active', 'normal', 'disabled', 'hovered'] = 'normal'
-        self._def_state: Literal['active', 'normal', 'disabled', 'hovered'] = 'normal'
+        self._state: _STATE = state
 
         # calculate dimensions
         text_height = self._font.metrics('linespace')
@@ -278,10 +285,10 @@ class Button(tk.Canvas):
                                              fill=self._fg,
                                              font=self._font)
 
-        self.tag_bind(self._id, '<ButtonPress-1>', self._on_press)
-        self.tag_bind(self._id, '<ButtonRelease-1>', self._on_release)
         self.tag_bind(self._id, '<Enter>', self._on_enter)
         self.tag_bind(self._id, '<Leave>', self._on_leave)
+        self.tag_bind(self._id, '<ButtonPress-1>', self._on_press)
+        self.tag_bind(self._id, '<ButtonRelease-1>', self._on_release)
         self.tag_bind(self._text_id, '<ButtonPress-1>', self._on_press)
         self.tag_bind(self._text_id, '<ButtonRelease-1>', self._on_release)
 
@@ -289,40 +296,38 @@ class Button(tk.Canvas):
         if self._state == 'disabled':
             return
 
-        self.itemconfigure(self._id, fill=self._active_bg)
+        self._set_state('active')
 
     def _on_release(self, event: tk.Event) -> None:
         if self._state == 'disabled':
             return
 
+        _state = None
         x = self.winfo_rootx()
         y = self.winfo_rooty()
         if (event.x_root >= x
                 and event.x_root <= self._width
                 and event.y_root >= y
                 and event.y_root <= self._height):
-            self.itemconfigure(self._id, fill=self._hover_bg)
-            self.itemconfigure(self._text_id, fill=self._hover_fg)
-            self._state = 'hovered'
+            _state = 'hovered'
         else:
-            self.itemconfigure(self._id, fill=self._bg)
-            self.itemconfigure(self._text_id, fill=self._fg)
-            self._state = 'normal'
+            _state = 'normal'
 
         if self._command is not None:
+            self._set_state('disabled')
             try:
                 self._command(event)
             except TypeError:
                 self._command()
 
+        self._set_state(_state)
+
     def _on_enter(self, event: tk.Event) -> None:
         if self._state == 'hovered' or self._state == 'disabled':
             return
 
-        self.itemconfigure(self._id, fill=self._hover_bg)
-        self.itemconfigure(self._text_id, fill=self._hover_fg)
+        self._set_state('hovered')
         self.configure(cursor=self._cursor)
-        self._state = 'hovered'
 
     def _on_leave(self, event: tk.Event) -> None:
         if self._state == 'disabled':
@@ -336,10 +341,27 @@ class Button(tk.Canvas):
                 and event.y_root <= y + self._height):
             return
 
-        self.itemconfigure(self._id, fill=self._bg)
-        self.itemconfigure(self._text_id, fill=self._fg)
+        self._set_state('normal')
         self.configure(cursor='arrow')
-        self._state = self._def_state
+
+    def _set_state(self, state: _STATE) -> None:
+        match state:
+            case 'active':
+                self.itemconfigure(self._id, fill=self._active_bg)
+                self.itemconfigure(self._text_id, fill=self._active_fg)
+            case 'disabled':
+                self.itemconfigure(self._id, fill=self._disabled_bg)
+                self.itemconfigure(self._text_id, fill=self._disabled_fg)
+            case 'hovered':
+                self.itemconfigure(self._id, fill=self._hover_bg)
+                self.itemconfigure(self._text_id, fill=self._hover_fg)
+            case 'normal':
+                self.itemconfigure(self._id, fill=self._bg)
+                self.itemconfigure(self._text_id, fill=self._fg)
+            case other:
+                raise tk.TclError(f'Invalid button state: {other}')
+
+        self._state = state
 
     def _get_style(self, option: str, default: _T, state: str | None=None) -> _T:
         if self._style is None:
