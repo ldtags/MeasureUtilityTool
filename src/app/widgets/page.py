@@ -15,14 +15,7 @@ class Page(Frame, metaclass=ABCMeta):
         super().__init__(parent, **kwargs)
         self.grid(row=0,
                   column=0,
-                  sticky=tk.NSEW,
-                  padx=padx,
-                  pady=pady)
-
-        parent_height = parent.winfo_height()
-        parent_width = parent.winfo_width()
-        self.configure(height=parent_height,
-                       width=parent_width)
+                  sticky=tk.NSEW)
 
     @abstractmethod
     def show(self) -> None:

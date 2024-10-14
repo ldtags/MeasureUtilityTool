@@ -4,7 +4,6 @@ import tkinter.ttk as ttk
 from ctypes import windll
 
 from src import assets
-from src.app.views.app import App
 
 
 # fixes blurry text on Windows 10

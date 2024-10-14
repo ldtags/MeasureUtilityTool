@@ -1,6 +1,7 @@
 import os
 import math
 import tkinter as tk
+import customtkinter as ctk
 from PIL import ImageTk, Image as ImageModule
 from PIL.Image import Image, Resampling
 from PIL.ImageFile import ImageFile
@@ -127,3 +128,27 @@ def get_tkimage(file_name: str,
         _TK_IMAGES[key] = tk_image
 
     return tk_image
+
+
+def get_ctkimage(light_image: str | None=None,
+                 dark_image: str | None=None,
+                 size: tuple[int, int]=(20, 20)
+                ) -> ctk.CTkImage:
+    if light_image is None and dark_image is None:
+        raise tk.TclError('No image path provided')
+
+    if light_image is not None:
+        light_path = get_path(light_image)
+    else:
+        light_path = None
+
+    if dark_image is not None:
+        dark_path = get_path(dark_image)
+    else:
+        dark_path = None
+
+    light_path = light_path or dark_path
+    dark_path = dark_path or light_path
+    return ctk.CTkImage(light_image=ImageModule.open(light_path),
+                        dark_image=ImageModule.open(dark_path),
+                        size=size)

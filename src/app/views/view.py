@@ -22,8 +22,6 @@ class View:
         set_styles()
 
         self.app = app = App(root.container)
-        app.post_process()
-
         self.dashboard = DashboardView(app.container)
         self.parser = ParserView(app.container)
         self.summarizer = SummarizerView(app.container)

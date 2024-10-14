@@ -29,7 +29,8 @@ class MeasureSelectionFrame(ctk.CTkFrame):
 
         self.state: Literal['json', 'etrm'] = 'json'
 
-        self.grid_rowconfigure((0, 1, 2, 3, 4, 5), weight=0)
+        self.grid_rowconfigure((0, 2, 4, 6, 7), weight=0)
+        self.grid_rowconfigure((1, 3, 5, 8), weight=1)
         self.grid_columnconfigure((0), weight=1)
 
         self.json_switch_var = tk.IntVar(self, 1)
@@ -45,23 +46,23 @@ class MeasureSelectionFrame(ctk.CTkFrame):
                               column=0,
                               sticky=tk.NSEW,
                               padx=(20, 20),
-                              pady=(10, 10))
+                              pady=(10, 0))
 
         self.json_frame = JsonFrame(self,
                                     text=file_text,
                                     file_types=file_types,
                                     dialog_text=dialog_text,
                                     button_text=btn_text)
-        self.json_frame.grid(row=1,
+        self.json_frame.grid(row=2,
                              column=0,
                              sticky=tk.NSEW,
                              padx=(30, 30))
 
         separator = Separator(self, color='#bfbfbf')
-        separator.grid(row=2,
+        separator.grid(row=4,
                        column=0,
                        sticky=tk.EW,
-                       pady=(10, 10))
+                       pady=(20, 10))
 
         self.etrm_switch_var = tk.IntVar(self, 0)
         self.etrm_switch = ctk.CTkSwitch(self,
@@ -72,7 +73,7 @@ class MeasureSelectionFrame(ctk.CTkFrame):
                                          bg_color=bg,
                                          variable=self.etrm_switch_var,
                                          command=self.swap_state)
-        self.etrm_switch.grid(row=3,
+        self.etrm_switch.grid(row=6,
                               column=0,
                               sticky=tk.NSEW,
                               padx=(20, 20),
@@ -81,13 +82,14 @@ class MeasureSelectionFrame(ctk.CTkFrame):
         self.etrm_frame = EtrmFrame(self,
                                     text=etrm_text,
                                     button_text=btn_text)
-        self.etrm_frame.grid(row=4,
+        self.etrm_frame.grid(row=7,
                              column=0,
                              sticky=tk.NSEW,
                              padx=(30, 30),
                              pady=(0, 20))
 
         self.set_state('json')
+        self.grid_propagate(False)
 
     def swap_state(self, event: tk.Event | None=None) -> None:
         match self.state:
@@ -102,7 +104,9 @@ class MeasureSelectionFrame(ctk.CTkFrame):
         match state:
             case 'json':
                 self.etrm_frame.grid_forget()
-                self.json_frame.grid(row=1,
+                self.grid_rowconfigure((1, 3), weight=1)
+                self.grid_rowconfigure((5, 8), weight=0)
+                self.json_frame.grid(row=2,
                                      column=0,
                                      sticky=tk.NSEW,
                                      padx=(30, 30))
@@ -110,7 +114,9 @@ class MeasureSelectionFrame(ctk.CTkFrame):
                 self.etrm_switch_var.set(0)
             case 'etrm':
                 self.json_frame.grid_forget()
-                self.etrm_frame.grid(row=4,
+                self.grid_rowconfigure((1, 3), weight=0)
+                self.grid_rowconfigure((5, 8), weight=1)
+                self.etrm_frame.grid(row=7,
                                      column=0,
                                      sticky=tk.NSEW,
                                      padx=(30, 30),

@@ -128,7 +128,7 @@ def set_label_styles(style: ttk.Style) -> None:
 
     style.configure(
         'Title.View.TLabel',
-        font=('Segoe UI', 11),
+        font=('Segoe UI', 12, 'bold'),
         background='#dfe2e7'
     )
 
@@ -141,7 +141,8 @@ def set_button_styles(style: ttk.Style) -> None:
         background='#bfbfbf',
         foreground='#000000',
         activebackground='#8c8c8c',
-        highlightbackground='#9d9d9d'
+        highlightbackground='#9d9d9d',
+        bordercolor='#898989'
     )
 
     style.configure(

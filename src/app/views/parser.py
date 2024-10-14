@@ -9,10 +9,11 @@ class ParserView(Page):
     def __init__(self, parent: ttk.Frame, **kw):
         super().__init__(parent, style='Page.TFrame', **kw)
 
-        self.grid_rowconfigure((0, 4), weight=1)
-        self.grid_rowconfigure((1, 2, 3), weight=0)
+        self.grid_rowconfigure((0, 3), weight=2, uniform='ParserSpacing')
+        self.grid_rowconfigure((1), weight=0)
+        self.grid_rowconfigure((2), weight=2)
         self.grid_columnconfigure((0, 2), weight=2, uniform='ParserSpacing')
-        self.grid_columnconfigure((1), weight=1)
+        self.grid_columnconfigure((1), weight=2)
 
         title_label = ttk.Label(self,
                                 text='Select a Measure to Parse',

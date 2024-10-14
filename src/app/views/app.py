@@ -42,6 +42,11 @@ class App(ttk.Frame):
                             column=1,
                             sticky=tk.NSEW)
 
+        self.container.grid_rowconfigure(0, weight=1)
+        self.container.grid_columnconfigure(0, weight=1)
+
+        self.post_process()
+
     def set_nav(self,
                 nav: Literal['home', 'parser', 'summarizer', 'perm_qa_qc']
                ) -> None:
