@@ -4,6 +4,7 @@ from src.app.views.dashboard import DashboardView
 from src.app.views.parser import ParserView
 from src.app.views.summarizer import SummarizerView
 from src.app.views.perm_qa_qc import PermQaQcView
+from src.app.views.progress import ProgressView
 from src.app.views.styles import set_styles
 from src.app.widgets import Page, PageType
 from src.app.exceptions import (
@@ -26,12 +27,14 @@ class View:
         self.parser = ParserView(app.container)
         self.summarizer = SummarizerView(app.container)
         self.perm_qa_qc = PermQaQcView(app.container)
+        self.progress = ProgressView(app.container)
 
         self.pages: dict[PageType, Page] = {
             DashboardView: self.dashboard,
             ParserView: self.parser,
             SummarizerView: self.summarizer,
-            PermQaQcView: self.perm_qa_qc
+            PermQaQcView: self.perm_qa_qc,
+            ProgressView: self.progress
         }
 
     def show(self, page: PageType) -> None:
