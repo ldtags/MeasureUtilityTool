@@ -17,4 +17,3 @@ class Controller:
     def start(self) -> None:
         self.view.show(DashboardView)
         self.view.start()
-

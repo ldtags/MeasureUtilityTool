@@ -19,32 +19,25 @@ class App(ttk.Frame):
         window_height = parent.winfo_height()
 
         navbar_width = math.ceil(window_width * (1 / 7))
-        remaining_width = window_width - navbar_width
         footer_height = math.ceil(window_height * (1 / 11))
-        remaining_height = window_height - footer_height
 
         self.grid_columnconfigure((0), weight=0)
         self.grid_columnconfigure((1), weight=1)
         self.grid_rowconfigure((0), weight=1)
         self.grid_rowconfigure((1), weight=0)
 
-        self.navbar = navbar = NavBar(self,
-                                      width=navbar_width)
+        self.navbar = navbar = NavBar(self, width=navbar_width)
         navbar.grid(row=0,
                     rowspan=2,
                     column=0,
                     sticky=tk.NSEW)
 
-        self.footer = footer = Footer(self,
-                                      width=remaining_width,
-                                      height=footer_height)
+        self.footer = footer = Footer(self, height=footer_height)
         footer.grid(row=1,
                     column=1,
                     sticky=tk.NSEW)
 
-        self.container = ttk.Frame(self,
-                                   width=remaining_width,
-                                   height=remaining_height)
+        self.container = ttk.Frame(self)
         self.container.grid(row=0,
                             column=1,
                             sticky=tk.NSEW)

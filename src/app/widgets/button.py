@@ -1,8 +1,11 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 import tkinter.font as tkf
+import customtkinter as ctk
 from PIL.ImageTk import PhotoImage
-from typing import Callable, Literal, TypeVar
+from typing import Callable, Literal, TypeVar, Any
+
+from src.app import utils
 
 
 _T = TypeVar('_T')
@@ -42,14 +45,19 @@ class Button(tk.Canvas):
                  justify: Literal['left', 'right', 'center']=tk.CENTER,
                  align: Literal['top', 'bottom', 'center']=tk.CENTER,
                  state: _STATE='normal'):
+        self._style = style
+        try:
+            parent_bg = self._get_style('background', '#ffffff', style=parent.style)
+        except AttributeError:
+            parent_bg = background
+
         super().__init__(parent,
                          borderwidth=0,
                          relief=tk.FLAT,
                          highlightthickness=0,
-                         bg=background)
+                         bg=parent_bg)
 
         self.parent = parent
-        self._style = style
         self._command = command
         self._def_font = tkf.Font(size=10, family='Helvetica')
         self._font = font or self._def_font
@@ -363,20 +371,25 @@ class Button(tk.Canvas):
 
         self._state = state
 
-    def _get_style(self, option: str, default: _T, state: str | None=None) -> _T:
-        if self._style is None:
+    def _get_style(self,
+                   option: str,
+                   default: _T,
+                   state: str | None=None,
+                   style: str | None=None
+                  ) -> _T:
+        style = style or self._style
+        if style is None:
             return default
 
-        style = ttk.Style()
-        style_name = f'{self._style}'
-        while '.' in style_name:
-            style_value = style.lookup(self._style, option, state, None)
+        style_obj = ttk.Style()
+        while '.' in style:
+            style_value = style_obj.lookup(style, option, state, None)
             if style_value is not None and style_value != '':
                 return style_value
 
-            style_name = style_name[style_name.index('.') + 1:]
+            style = style[style.index('.') + 1:]
 
-        style_value = style.lookup(self._style, option, state, default)
+        style_value = style_obj.lookup(style, option, state, default)
         if style_value == '':
             return default
 
@@ -420,3 +433,70 @@ class Button(tk.Canvas):
 
         if _canv_kw != {}:
             super().configure(**_canv_kw)
+
+
+class CTkButton(ctk.CTkButton):
+    def __init__(self,
+                 parent: tk.Misc,
+                 width: int=140,
+                 height: int=28,
+                 corner_radius: int | None=None,
+                 border_width: int|None=None,
+                 border_spacing: int=2,
+                 bg_color: str | tuple[str, str]='transparent',
+                 fg_color: str| tuple[str, str] | None=None,
+                 hover_color: str| tuple[str, str] | None=None,
+                 border_color: str| tuple[str, str] | None=None,
+                 text_color: str| tuple[str, str] | None=None,
+                 text_color_disabled: str| tuple[str, str] | None=None,
+                 background_corner_colors: tuple[str | tuple[str, str]] | None=None,
+                 round_width_to_even_numbers: bool=True,
+                 round_height_to_even_numbers: bool=True,
+                 text: str='CTkButton',
+                 font: tuple | ctk.CTkFont | None=None,
+                 textvariable: tk.Variable | None=None,
+                 image: ctk.CTkImage | PhotoImage | None=None,
+                 state: str='normal',
+                 hover: bool=True,
+                 command: Callable[[tk.Event | None], Any] | None=None,
+                 compound: str=tk.LEFT,
+                 anchor: str=tk.CENTER,
+                 style: str | None=None,
+                 **kwargs):
+        _bg = utils.get_style(style, 'background', fg_color)
+        _hover_color = utils.get_style(style, 'highlightbackground', hover_color)
+        _bd = utils.get_style(style, 'borderwidth', border_width)
+        _fg = utils.get_style(style, 'foreground', text_color)
+        if _fg == text_color:
+            _fg = utils.get_style(style, 'fg', text_color)
+
+        _disabled_fg = utils.get_style(style, 'disabledforeground', text_color_disabled)
+        _cursor = utils.get_style(style, 'cursor', kwargs.get('cursor', 'hand2'))
+        _font = utils.get_style(style, 'font', font)
+
+        super().__init__(parent,
+                         width=width,
+                         height=height,
+                         corner_radius=corner_radius,
+                         border_width=_bd,
+                         border_spacing=border_spacing,
+                         bg_color=bg_color,
+                         fg_color=_bg,
+                         hover_color=_hover_color,
+                         border_color=border_color,
+                         text_color=_fg,
+                         text_color_disabled=_disabled_fg,
+                         background_corner_colors=background_corner_colors,
+                         round_width_to_even_numbers=round_width_to_even_numbers,
+                         round_height_to_even_numbers=round_height_to_even_numbers,
+                         text=text,
+                         font=_font,
+                         textvariable=textvariable,
+                         image=image,
+                         state=state,
+                         hover=hover,
+                         command=command,
+                         compound=compound,
+                         anchor=anchor,
+                         cursor=_cursor,
+                         **kwargs)

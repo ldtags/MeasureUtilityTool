@@ -13,7 +13,6 @@ class DashboardView(Page):
 
         self.grid_rowconfigure((0, 2), weight=1)
         self.grid_columnconfigure((0, 2, 4, 6), weight=1)
-        self.grid_propagate(False)
 
         parent_height = parent.winfo_height()
         parent_width = parent.winfo_width()
@@ -69,6 +68,8 @@ class DashboardButton(ttk.Frame):
                  cursor='hand2',
                  **kwargs):
         super().__init__(parent, height=height, width=width)
+
+        self.style = parent.style
 
         self.pack_propagate(False)
         label = ttk.Label(self, text=text)
